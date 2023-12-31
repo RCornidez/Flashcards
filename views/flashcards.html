@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flashcards</title>
+    
+    <!-- Google Font CDN -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0px;
+            padding: 0px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        html {
+            background-color: #d4d4d8;
+            padding: 1rem;
+        }
+
+        ul {
+            list-style: none;
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        li {
+            margin-right: 10px;
+        }
+
+        p {
+            margin-bottom: 0.5em;
+        }
+
+        .flash-card {
+            background-color: #f3f4f6;
+            cursor: pointer;
+            border: 1px solid #f3f4f6;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-height: 200px;
+            max-height: 400px;
+            max-width: 629px;
+            overflow-y: auto;
+            text-wrap: wrap;
+
+        }
+
+        .card-content {
+            text-align: left;
+            display: none; /* Initially hidden */
+        }
+
+        .nested-content {
+            margin-left: 20px;
+        }
+
+        .tag {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 2px 6px;
+            margin: 2px;
+            border-radius: 4px;
+        }
+
+        .next-button {
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .delete-button {
+            cursor: pointer;
+            background-color: #dc2626;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let flashcards = []; // Initialize as an empty array
+            let currentIndex = 0;
+
+            // Function to fetch flashcards data from the server
+            async function fetchFlashcards() {
+                try {
+                    const response = await fetch('/flashcards'); // Fetch data from the /flashcards route
+                    if (response.ok) {
+                        flashcards = await response.json(); // Parse the JSON response
+                        showFlashcard(currentIndex); // Display the first flashcard
+                    } else {
+                        console.error('Failed to fetch flashcards data');
+                    }
+                } catch (error) {
+                    console.error('Error fetching flashcards data:', error);
+                }
+            }
+
+            // Function to display the current flashcard
+            function showFlashcard(index) {
+                if (index >= 0 && index < flashcards.length) {
+                    const card = flashcards[index];
+                    document.querySelector('.flash-card h2').textContent = card.title;
+                    const contentElement = document.querySelector('.card-content');
+
+                    // Check if the content is an array (nested content)
+                    if (Array.isArray(card.content)) {
+                        // Handle nested content
+                        const nestedContent = card.content.map(nested => {
+                            return `<div class="nested-item"><h3>${nested.title}</h3><p>${nested.content}</p></div>`;
+                        });
+                        contentElement.innerHTML = nestedContent.join('');
+                    } else {
+                        // Display as a single string
+                        contentElement.innerHTML = `<p>${card.content}</p>`;
+                    }
+
+                    // Hide card content initially
+                    contentElement.style.display = 'none';
+                }
+            }
+
+            // Initial fetch and display
+            fetchFlashcards();
+
+            // Function to toggle card content
+            function toggleCardContent() {
+                const content = document.querySelector('.card-content');
+                content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            }
+
+            // Function to show next flashcard
+            function showNextCard() {
+                currentIndex++;
+                if (currentIndex >= flashcards.length) {
+                    currentIndex = 0; // Wrap around to the first card
+                }
+                showFlashcard(currentIndex);
+            }
+
+            async function clearCards() {
+                try {
+                    const response = await fetch('http://localhost:5000/flashcards/delete-all', {
+                        method: 'DELETE',
+                    });
+                    if (response.ok) {
+                        console.log('All flashcards deleted successfully');
+                    } else {
+                        console.error('Failed to delete all flashcards');
+                    }
+                } catch (error) {
+                    console.error('Error deleting flashcards:', error);
+                }
+            }
+
+
+            // Add event listeners
+            document.querySelector('.flash-card').addEventListener('click', toggleCardContent);
+            document.querySelector('.next-button').addEventListener('click', showNextCard);
+            document.querySelector('.delete-button').addEventListener('click', clearCards);
+        });
+    </script>
+
+</head>
+<body>
+    <ul>
+        <li>
+            <div><a href="/">Home</a>
+        </li>
+        <li>
+            <h1>Flashcards</h1>
+        </li>
+    </ul>
+    
+    <button class="next-button">Next</button>
+    <button class="delete-button">Delete All</button>
+    
+    
+    </div>
+
+    <!-- Display flashcard -->
+    <div class="flash-card">
+        <div class="card-title">
+            <h2></h2>
+        </div>
+        <div class="card-content">
+            <p></p>
+        </div>
+    </div>
+
+    
+</body>
+</html>

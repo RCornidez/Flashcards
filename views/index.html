@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flashcards</title>
+
+    <!-- Google Font CDN -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+            margin: 0px;
+        }
+
+        html {
+            height: 100%;
+            width: 100%;
+            background-color: #d4d4d8;
+            padding: 1rem;
+        }
+
+        body {
+            height: 100%;
+            width: 100%;
+        }
+
+        #test {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="test">
+        <h2>How-to-use:</h2>
+        <div>
+            <h3>Upload your Flashcard data (JSON File)</h3>
+            <p>Example format shown <a href="#sample">below</a></p>
+        </div>
+        <form id="jsonUploadForm" enctype="multipart/form-data">
+            <input type="file" name="jsonFile" id="jsonFile" accept=".json">
+            <button type="submit">Upload</button>
+        </form>
+        
+        <h3>Review your Flashcards <a href="http://localhost:5000/flashcards-review">here</a></h3>
+
+    </div>
+    <h3 id="sample">Sample JSON Data</h3>
+    <pre id="json-data"></pre>
+
+
+    <script>
+        // Handle the form submission
+        document.getElementById("jsonUploadForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            var formData = new FormData();
+            var fileInput = document.getElementById("jsonFile");
+            var file = fileInput.files[0];
+            formData.append("jsonFile", file);
+
+            // Send a POST request to your Flask server
+            fetch('http://127.0.0.1:5000/flashcards/batch', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.text();
+                } else {
+                    throw new Error('Upload failed');
+                }
+            })
+            .then(data => {
+                console.log(data); // Log the server response
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        });
+
+
+        // Display sample JSON data format
+        var jsonData = [
+            {
+                "title": "Simple Flashcard",
+                "content": "This is a simple flashcard with some content.",
+                "tags": ["tag1"]
+            },
+            {
+                "title": "Nested Flashcard",
+                "content": [
+                {
+                    "title": "Nested Detail 1",
+                    "content": "This is the first nested description."
+                },
+                {
+                    "title": "Nested Detail 2",
+                    "content": "This is the second nested description."
+                }
+                ],
+                "tags": ["tag2", "tag3"]
+            }
+        ]
+
+    
+        // Format the JSON data as a string and display it
+        var jsonString = JSON.stringify(jsonData, null, 2); // Indentation of 2 spaces
+        document.getElementById("json-data").textContent = jsonString;
+      </script>
+</body>
+</html>
